@@ -181,6 +181,7 @@ export default class OfferMaker extends React.Component {
         const title = isBuy ?
             `Buy ${baseAssetName} using ${counterAssetName}` :
             `Sell ${baseAssetName} for ${counterAssetName}`;
+        const targetAsset = isBuy ? counterSelling : baseBuying;
         return (
             <div>
                 <h3 className="island__sub__division__title island__sub__division__title--left">{title}</h3>
@@ -195,6 +196,7 @@ export default class OfferMaker extends React.Component {
 
                     <OfferMakerOverview
                         d={this.props.d}
+                        targetAsset={targetAsset}
                         side={this.props.side}
                         offerState={this.state} />
                 </form>
