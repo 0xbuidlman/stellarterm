@@ -10,8 +10,9 @@ export default class ManageOffers extends React.Component {
     }
 
     getRowItems() {
-        const ready = this.state;
+        const { ready } = this.state;
         const { price, baseAmount, counterAmount } = this.props.rectifiedOffer;
+
         const cancelLink = ready ?
             <a onClick={e => this.handleCancel(e)}>Cancel offer</a> :
             <span>Cancelling...</span>;
@@ -34,11 +35,11 @@ export default class ManageOffers extends React.Component {
         const { handlers } = this.props.d.session;
         const { rectifiedOffer } = this.props;
 
+        this.setState({ ready: false });
+
         const signAndSubmit = await handlers.removeOffer(rectifiedOffer.id);
 
         if (signAndSubmit.result !== 'finish') { return; }
-
-        this.setState({ ready: false });
         try {
             await signAndSubmit.serverResult;
         } catch (error) {
