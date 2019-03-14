@@ -53,12 +53,14 @@ export default class PriceChart extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.d.orderbook.data.trades !== undefined) {
-            this.renderChart(this.props.d.orderbook.data, this.props.d.orderbook.data.trades);
+        const { data, event } = this.props.d.orderbook;
+
+        if (data.trades !== undefined) {
+            this.renderChart(data, data.trades);
         } else {
-            this.unsub = this.props.d.orderbook.event.sub(() => {
-                if (!this.rendered && this.props.d.orderbook.data.trades !== undefined) {
-                    this.renderChart(this.props.d.orderbook.data, this.props.d.orderbook.data.trades);
+            this.unsub = event.sub(() => {
+                if (!this.rendered && data.trades !== undefined) {
+                    this.renderChart(data, data.trades);
                 }
             });
         }
@@ -66,7 +68,6 @@ export default class PriceChart extends React.Component {
 
     shouldComponentUpdate() {
         if (this.stockChart !== undefined) {
-            // slice(1) to remove potential outliers
             this.stockChart.series[0].setData(this.orderbook.trades);
         }
         return false;
