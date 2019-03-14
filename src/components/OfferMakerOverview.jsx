@@ -36,29 +36,21 @@ export default class OfferMakerOverview extends React.Component {
             </div>
         );
     }
-    getInputSummaryMessage() {
+    getInputSummaryMessage(capitalizedSide, baseBuying, counterSelling) {
         const { valid, amount, total } = this.props.offerState;
         if (!valid) {
             return null;
         }
-        const isBuy = this.props.side === 'buy';
-        const capitalizedSide = isBuy ? 'Buy' : 'Sell';
-        const baseAssetName = this.props.d.orderbook.data.baseBuying.getCode();
-        const counterAssetName = this.props.d.orderbook.data.counterSelling.getCode();
 
         return (
             <div className="s-alert s-alert--info">
-                {capitalizedSide} {this.constructor.capDigits(amount)} {baseAssetName} for{' '}
-                {this.constructor.capDigits(total)} {counterAssetName}
+                {capitalizedSide} {this.constructor.capDigits(amount)} {baseBuying.getCode()} for{' '}
+                {this.constructor.capDigits(total)} {counterSelling.getCode()}
             </div>
         );
     }
 
-    getSubmitButton() {
-        const isBuy = this.props.side === 'buy';
-        const capitalizedSide = isBuy ? 'Buy' : 'Sell';
-        const baseAssetName = this.props.d.orderbook.data.baseBuying.getCode();
-
+    getSubmitButton(capitalizedSide, baseBuying) {
         const { valid, buttonState } = this.props.offerState;
         const isButtonReady = buttonState === 'ready';
 
@@ -66,13 +58,12 @@ export default class OfferMakerOverview extends React.Component {
             <input
                 type="submit"
                 className="s-button"
-                value={isButtonReady ? `${capitalizedSide} ${baseAssetName}` : 'Creating offer...'}
+                value={isButtonReady ? `${capitalizedSide} ${baseBuying.getCode()}` : 'Creating offer...'}
                 disabled={!valid || this.isInsufficientBalance() || !isButtonReady} />
         );
     }
 
-    getTrustNeededAssets() {
-        const { baseBuying, counterSelling } = this.props.d.orderbook.data;
+    getTrustNeededAssets(baseBuying, counterSelling) {
         const { account } = this.props.d.session;
         const baseBalance = account.getBalance(baseBuying);
         const counterBalance = account.getBalance(counterSelling);
@@ -109,11 +100,14 @@ export default class OfferMakerOverview extends React.Component {
 
     render() {
         const login = this.props.d.session.state === 'in';
+        const { baseBuying, counterSelling } = this.props.d.orderbook.data;
+        const isBuy = this.props.side === 'buy';
+        const capitalizedSide = isBuy ? 'Buy' : 'Sell';
 
         if (!login) {
             return (
                 <div>
-                    {this.getInputSummaryMessage()}
+                    {this.getInputSummaryMessage(capitalizedSide, baseBuying, counterSelling)}
                     <span className="OfferMaker__message">
                         <a href="#account">Log in</a> to create an offer
                     </span>
@@ -121,7 +115,8 @@ export default class OfferMakerOverview extends React.Component {
             );
         }
 
-        const trustNeededAssets = this.getTrustNeededAssets();
+
+        const trustNeededAssets = this.getTrustNeededAssets(baseBuying, counterSelling);
 
         if (trustNeededAssets.length) {
             return (
@@ -140,12 +135,13 @@ export default class OfferMakerOverview extends React.Component {
                 </div>
             );
         }
+
         return (
             <div className="OfferMaker__overview">
                 {this.getBalance()}
-                {this.getInputSummaryMessage()}
+                {this.getInputSummaryMessage(capitalizedSide, baseBuying, counterSelling)}
                 <OfferMakerResultMessage offerState={this.props.offerState} />
-                {this.getSubmitButton()}
+                {this.getSubmitButton(capitalizedSide, baseBuying)}
             </div>
         );
     }
