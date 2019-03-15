@@ -51,7 +51,7 @@ export default function OfferTable(props) {
                         Number(offer.depth).toLocaleString('en-US',
                             { minimumFractionDigits: depthNumDecimals, maximumFractionDigits: depthNumDecimals })];
 
-                    if (!isBuy) { rowItems.reverse(); }
+                    if (isBuy) { rowItems.reverse(); }
 
                     const row = rowItems.map((item, i) => {
                         const key = offer.key + i;
