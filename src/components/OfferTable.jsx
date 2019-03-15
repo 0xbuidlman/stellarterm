@@ -48,21 +48,21 @@ export default class OfferTable extends React.Component {
             Math.max(4, Format.niceNumDecimals(this.props.offers[priceIndex].price)) : 7;
 
         const rowItems = [
-            Printify.lightenZeros(offer.price, priceNumDecimals),
-            Printify.lightenZeros(offer.base),
-            Printify.lightenZeros(offer.counter),
-            Number(offer.depth).toLocaleString('en-US',
-                { minimumFractionDigits: depthNumDecimals, maximumFractionDigits: depthNumDecimals })];
+            { value: Number(offer.depth).toLocaleString('en-US',
+                { minimumFractionDigits: depthNumDecimals, maximumFractionDigits: depthNumDecimals }),
+                key: 'sum' },
+            { value: Printify.lightenZeros(offer.counter), key: 'counter' },
+            { value: Printify.lightenZeros(offer.base), key: 'base' },
+            { value: Printify.lightenZeros(offer.price, priceNumDecimals), key: 'price' }];
 
         if (!isBuy) { rowItems.reverse(); }
 
-        return rowItems.map((item, i) => {
-            const key = offer.key + i;
-            return (
-                <div key={key} className="OfferTable__row__item">{item}</div>
-            );
-        });
+        return rowItems.map(({ value, key }) => (
+                <div key={key} className="OfferTable__row__item">{value}</div>
+            ),
+        );
     }
+
     getRows(isBuy) {
         return this.props.offers.map((offer, index) => (
             <div

@@ -10,9 +10,11 @@ export default class ManageOffers extends React.Component {
         super(props);
         this.unsub = this.props.d.session.event.sub(() => { this.forceUpdate(); });
     }
+
     componentWillUnmount() {
         this.unsub();
     }
+
     getSortedRectifiedOffers(side) {
         const { baseBuying, counterSelling } = this.props.d.orderbook.data;
         const { offers } = this.props.d.session.account;
@@ -53,7 +55,12 @@ export default class ManageOffers extends React.Component {
 
     renderManageOffersTable(side) {
         const { baseBuying, counterSelling } = this.props.d.orderbook.data;
-        const headerTitles = ['', counterSelling.getCode(), baseBuying.getCode(), 'Price'];
+        const headerTitles = [
+            { title: '', className: '' },
+            { title: counterSelling.getCode(), className: 'ManageOffers__table__header__item' },
+            { title: baseBuying.getCode(), className: 'ManageOffers__table__header__item' },
+            { title: 'Price', className: 'ManageOffers__table__header__item' }];
+
         if (side === 'sell') {
             headerTitles.reverse();
         }
@@ -64,8 +71,8 @@ export default class ManageOffers extends React.Component {
                 <table className="ManageOffers__table">
                     <tbody>
                     <tr className="ManageOffers__table__header">
-                        {headerTitles.map(title => (
-                            <td className="ManageOffers__table__header__item" key={title}>{title}</td>
+                        {headerTitles.map(({ title, className }) => (
+                            <td className={className} key={title}>{title}</td>
                         ))}
                     </tr>
                     {this.getManageOffersRows(side)}
