@@ -3,78 +3,93 @@ import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import Printify from '../lib/Printify';
 import Format from '../lib/Format';
-
+import Driver from '../lib/Driver';
 
 // Dumb component that mainly renders the UI
-export default function OfferTable(props) {
-    const isBuy = props.side === 'buy';
-    const isOffers = props.offers.length !== 0;
+export default class OfferTable extends React.Component {
 
-    const depthNumDecimals = isOffers ?
-        Math.max(0, Format.niceNumDecimals(props.offers[props.offers.length - 1].depth)) : 7;
+    getRowStyle(isBuy, offer, index) {
+        const altColor = index % 2 === 0 ? '#fff' : '#f9f9f9'; // #f4f4f5 is $s-color-neutral8
+        const depthPercentage =
+          Math.min(100, Number((offer.depth / this.props.maxDepth) * 100).toFixed(1));
+        const rowStyle = {};
 
-    const priceIndex = isBuy ? (props.offers.length - 1) : 0;
-    const priceNumDecimals = isOffers ?
-        Math.max(4, Format.niceNumDecimals(props.offers[priceIndex].price)) : 7;
+        const background = isBuy ? '#dcf6de' : '#fed6d8';
+        const gradientDirection = isBuy ? 'to left' : 'to right';
 
+        rowStyle.background =
+          `linear-gradient(${gradientDirection}, ${background} ${depthPercentage}%, ${altColor} ${depthPercentage}%)`;
 
-    const headerItems = [
-        `Sum ${props.counterCurrency}`,
-        props.counterCurrency,
-        props.baseCurrency,
-        'Price'];
+        return rowStyle;
+    }
 
-    if (!isBuy) { headerItems.reverse(); }
+    getHeader(isBuy) {
+        const headerItems = [
+            `Sum ${this.props.counterCurrency}`,
+            this.props.counterCurrency,
+            this.props.baseCurrency,
+            'Price'];
 
-    const header = headerItems.map(item => (
-        <div className="OfferTable__header__item" key={item}>{item}</div>
-    ));
+        if (!isBuy) { headerItems.reverse(); }
 
-    return (
-        <div className="OfferTable">
-            <div className="OfferTable__header">{header}</div>
-            <div className="OfferTable__table">
-                {props.offers.map((offer, index) => {
-                    const altColor = index % 2 === 0 ? '#fff' : '#f9f9f9'; // #f4f4f5 is $s-color-neutral8
-                    const depthPercentage =
-                        Math.min(100, Number((offer.depth / props.maxDepth) * 100).toFixed(1));
-                    const rowStyle = {};
-                    const background = isBuy ? '#dcf6de' : '#fed6d8';
-                    const gradientDirection = isBuy ? 'to left' : 'to right';
-                    rowStyle.background =
-                        `linear-gradient(${gradientDirection}, ${background} ${depthPercentage}%, ${altColor} ${depthPercentage}%)`;
+        return headerItems.map(item => (
+           <div className="OfferTable__header__item" key={item}>{item}</div>
+        ));
+    }
 
-                    const rowItems = [
-                        Printify.lightenZeros(offer.price, priceNumDecimals),
-                        Printify.lightenZeros(offer.base),
-                        Printify.lightenZeros(offer.counter),
-                        Number(offer.depth).toLocaleString('en-US',
-                            { minimumFractionDigits: depthNumDecimals, maximumFractionDigits: depthNumDecimals })];
+    getRowItems(isBuy, offer) {
+        const hasOffers = this.props.offers.length !== 0;
 
-                    if (isBuy) { rowItems.reverse(); }
+        const depthNumDecimals = hasOffers ?
+            Math.max(0, Format.niceNumDecimals(this.props.offers[this.props.offers.length - 1].depth)) : 7;
 
-                    const row = rowItems.map((item, i) => {
-                        const key = offer.key + i;
-                        return (
-                            <div key={key} className="OfferTable__row__item">{item}</div>
-                        );
-                    });
+        const priceIndex = isBuy ? (this.props.offers.length - 1) : 0;
+        const priceNumDecimals = hasOffers ?
+            Math.max(4, Format.niceNumDecimals(this.props.offers[priceIndex].price)) : 7;
 
-                    return (
-                        <div
-                            className="OfferTable__row"
-                            key={offer.key}
-                            style={rowStyle}
-                            onClick={() => props.d.orderbook.handlers.pickPrice(offer.price)}>
-                            {row}
-                        </div>
-                    );
-                })}
+        const rowItems = [
+            Printify.lightenZeros(offer.price, priceNumDecimals),
+            Printify.lightenZeros(offer.base),
+            Printify.lightenZeros(offer.counter),
+            Number(offer.depth).toLocaleString('en-US',
+                { minimumFractionDigits: depthNumDecimals, maximumFractionDigits: depthNumDecimals })];
+
+        if (!isBuy) { rowItems.reverse(); }
+
+        return rowItems.map((item, i) => {
+            const key = offer.key + i;
+            return (
+                <div key={key} className="OfferTable__row__item">{item}</div>
+            );
+        });
+    }
+    getRows(isBuy) {
+        return this.props.offers.map((offer, index) => (
+            <div
+                className="OfferTable__row"
+                key={offer.key}
+                style={this.getRowStyle(isBuy, offer, index)}
+                onClick={() => this.props.d.orderbook.handlers.pickPrice(offer.price)}>
+                {this.getRowItems(isBuy, offer)}
             </div>
-        </div>
-    );
+        ));
+    }
+
+    render() {
+        const isBuy = this.props.side === 'buy';
+
+        return (
+            <div className="OfferTable">
+                <div className="OfferTable__header">{this.getHeader(isBuy)}</div>
+                <div className="OfferTable__table">
+                    {this.getRows(isBuy)}
+                </div>
+            </div>
+        );
+    }
 }
 OfferTable.propTypes = {
+    d: PropTypes.instanceOf(Driver).isRequired,
     offers: PropTypes.arrayOf(PropTypes.object).isRequired,
     side: PropTypes.oneOf(['buy', 'sell']).isRequired,
     counterCurrency: PropTypes.string,
